@@ -1,0 +1,42 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+<!--    <h1>Список рассылок</h1>-->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th style="margin-left:20px">Заголовок</th>
+                <th style="margin-left:20px">Статус</th>
+                <th style="margin-left:20px">Дата создания</th>
+<!--                <th>Действия</th>-->
+            </tr>
+        </thead>
+        <tbody>
+        <thead>
+            {% for mailing in object_list %}
+                <tr>
+<!--                    <th>ID</th>-->
+                    <td>{{ mailing.id }}</td>
+<!--                    <th style="margin-left:20px">Заголовок</th>-->
+                    <td>{{ mailing.message.subject }}</td>
+<!--                    <th style="margin-left:20px">Статус</th>-->
+                    <td>{{ mailing.status }}</td>
+<!--                    <th style="margin-left:20px">Дата создания</th>-->
+                    <td>{{ mailing.created_at }}</td>
+                    <td>
+                        <a href="{% url 'mailings:mailing_detail' mailing.pk %}">Детали</a> |
+                        <a href="{% url 'mailings:mailing_update' mailing.pk %}">Редактировать</a> |
+                        <a href="{% url 'mailings:mailing_delete' mailing.pk %}">Удалить</a> |
+                        <form action="{% url 'mailings:mailing_send' mailing.pk %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Отправить</button>
+                        </form>
+                    </td>
+                </tr>
+        </thead>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'mailings:mailing_create' %}">Создать новую рассылку</a>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <div class="col d-flex flex-column gap-2">
+        <div class="feature-icon-small d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-4 rounded-3">
+            <svg class="bi" width="1em" height="1em">
+                <use xlink:href="#collection" />
+            </svg>
+        </div>
+        <h4 class="fw-semibold mb-0 text-body-emphasis">{% if not form.instance.pk %}Создание рассылки{% else %}Редактирование рассылки{% endif %}</h4>
+        <p class="text-body-secondary">Создание и редактирование рассылки</p>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Сохранить</button>
+        </form>
+        <a href="{% url 'mailings:mailing_list' %}" class="btn btn-primary btn-lg">Назад к списку</a>
+    </div>
+{% endblock %}

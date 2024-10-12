@@ -1,0 +1,18 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <div class="col d-flex flex-column gap-2">
+        <div class="feature-icon-small d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-4 rounded-3">
+            <svg class="bi" width="1em" height="1em">
+                <use xlink:href="#collection" />
+            </svg>
+        </div>
+        <h4 class="fw-semibold mb-0 text-body-emphasis">Удалить рассылку</h4>
+        <p class="text-body-secondary">Вы действительно хотите удалить рассылку "{{ mailing.message.subject }}"?</p>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit">Удалить</button>
+        </form>
+        <a href="{% url 'mailings:mailing_list' %}" class="btn btn-primary btn-lg">Отмена</a>
+    </div>
+{% endblock %}

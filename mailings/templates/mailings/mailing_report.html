@@ -1,0 +1,37 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+<h1>Отчет по рассылке: {{ mailing.message.subject }}</h1>
+
+<p><strong>Статус рассылки:</strong> {{ mailing.status }}</p>
+<p><strong>Дата создания:</strong> {{ mailing.start_time }}</p>
+
+<h2>Статистика отправок</h2>
+<ul>
+    <li>Успешных отправок: {{ successful_attempts }}</li>
+    <li>Неуспешных отправок: {{ failed_attempts }}</li>
+    <li>Всего попыток: {{ total_attempts }}</li>
+</ul>
+
+<h2>Подробности попыток</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Дата и время</th>
+            <th>Статус</th>
+            <th>Ответ сервера</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for attempt in mailing.attempts.all %}
+        <tr>
+            <td>{{ attempt.attempt_time }}</td>
+            <td>{{ attempt.status }}</td>
+            <td>{{ attempt.server_response }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'mailings:mailing_list' %}">Назад к списку рассылок</a>
+{% endblock %}

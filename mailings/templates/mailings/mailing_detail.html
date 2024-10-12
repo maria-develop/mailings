@@ -1,0 +1,23 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <h2>Детали рассылки</h2>
+    <p><strong>Заголовок:</strong> {{ mailing.message.subject }}</p>
+    <p><strong>Сообщение:</strong> {{ mailing.message.body }}</p>
+    <p><strong>Статус:</strong> {{ mailing.status }}</p>
+    <p><strong>Дата создания:</strong> {{ mailing.start_time }}</p>
+
+    <h4>Получатели</h4>
+    <ul>
+        {% for recipient in mailing.recipients.all %}
+            <li>{{ recipient.email }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'mailings:mailing_update' mailing.pk %}">Редактировать</a> |
+    <a href="{% url 'mailings:mailing_list' %}">Назад к списку</a> |
+    <form action="{% url 'mailings:mailing_send' mailing.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Отправить рассылку</button>
+    </form>
+{% endblock %}
