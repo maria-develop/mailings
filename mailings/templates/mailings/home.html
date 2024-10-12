@@ -1,0 +1,15 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <div class="col-md-3">
+        <h4>Добро пожаловать на страницу статистики рассылок!</h4>
+    </div>
+
+    <div class="col-md-9">
+        <p><strong>Общее количество рассылок:</strong> {{ total_mailings }}</p>
+        <p><strong>Количество активных рассылок (статус "Запущена"):</strong> {{ active_mailings }}</p>
+        <p><strong>Количество уникальных получателей:</strong> {{ unique_recipients }}</p>
+    </div>
+    
+    <a href="{% url 'mailings:mailing_list' %}" class="col-md-3 btn btn-primary">Посмотреть все рассылки</a>
+{% endblock %}

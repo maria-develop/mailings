@@ -1,4 +1,4 @@
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.views import View
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -125,4 +125,22 @@ class MailingReportView(DetailView):
         context['successful_attempts'] = self.object.attempts.filter(status='Успешно').count()
         context['failed_attempts'] = self.object.attempts.filter(status='Не успешно').count()
         context['total_attempts'] = self.object.attempts.count()
+        return context
+
+
+class HomePageView(TemplateView):
+    template_name = 'mailings/home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Количество всех рассылок
+        context['total_mailings'] = Mailing.objects.count()
+
+        # Количество активных рассылок (со статусом 'Запущена')
+        context['active_mailings'] = Mailing.objects.filter(status='Запущена').count()
+
+        # Количество уникальных получателей
+        context['unique_recipients'] = Recipient.objects.distinct().count()
+
         return context

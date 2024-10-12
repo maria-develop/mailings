@@ -23,7 +23,7 @@
 <link rel="apple-touch-icon" href="/docs/5.3/assets/img/favicons/apple-touch-icon.png" sizes="180x180">
 <link rel="icon" href="/docs/5.3/assets/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/docs/5.3/assets/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
-<link rel="manifest" href="/docs/5.3/assets/img/favicons/manifest.json">
+<!--<link rel="manifest" href="/docs/5.3/assets/img/favicons/manifest.json">-->
 <link rel="mask-icon" href="/docs/5.3/assets/img/favicons/safari-pinned-tab.svg" color="#712cf9">
 <link rel="icon" href="/docs/5.3/assets/img/favicons/favicon.ico">
 <meta name="theme-color" content="#712cf9">
@@ -170,13 +170,13 @@
     <h2 class="pb-2 border-bottom">Сервис рассылок</h2>
 
     <div class="row row-cols-1 row-cols-md-2 align-items-md-center g-5 py-5">
-      <div class="col d-flex flex-column align-items-start gap-2">
+      <div class="col-md-3 d-flex flex-column align-items-start gap-2">
         <h2 class="fw-bold text-body-emphasis">Список рассылок</h2>
         <p class="text-body-secondary">Здесь можно посмотреть все рассылки</p>
         <a href="{% url 'mailings:mailing_list' %}" class="btn btn-primary btn-lg">Посмотреть</a>
       </div>
 
-      <div class="col">
+      <div class="col-md-9">
         <div class="row row-cols-1 row-cols-sm-2 g-4">
           {% block content %}
           {% endblock %}
@@ -204,36 +204,3 @@
 
     </body>
 </html>
-
-
-
-
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
-<!--    <title>Рассылки</title>-->
-<!--</head>-->
-<!--<body>-->
-<!--    <header>-->
-<!--        <nav>-->
-<!--            <ul>-->
-<!--                <li><a href="{% url 'mailings:mailing_list' %}">Список рассылок</a></li>-->
-<!--                <li><a href="{% url 'mailings:mailing_create' %}">Создать рассылку</a></li>-->
-<!--            </ul>-->
-<!--        </nav>-->
-<!--    </header>-->
-
-<!--    <main>-->
-<!--        {% if messages %}-->
-<!--            <ul>-->
-<!--                {% for message in messages %}-->
-<!--                    <li>{{ message }}</li>-->
-<!--                {% endfor %}-->
-<!--            </ul>-->
-<!--        {% endif %}-->
-
-<!--    </main>-->
-<!--</body>-->
-<!--</html>-->
