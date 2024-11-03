@@ -8,6 +8,13 @@ class Recipient(models.Model):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     comment = models.TextField(blank=True, null=True)
+    owner = models.ForeignKey(
+        User,
+        verbose_name='Владелец',
+        help_text='Укажите владельца рассылки',
+        blank=True, null=True,
+        on_delete=models.SET_NULL,
+    )
 
     def __str__(self):
         return f"{self.full_name} {self.email}"
@@ -19,6 +26,7 @@ class Recipient(models.Model):
             "email",
             "full_name",
             "comment",
+            "owner",
         ]
 
 
@@ -46,18 +54,19 @@ class Message(models.Model):
 
 
 class Mailing(models.Model):
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(verbose_name='Начало отправки рассылки')
+    end_time = models.DateTimeField(verbose_name='Последняя дата отправки рассылки', null=True, blank=True)
     status = models.CharField(max_length=50, default='Создана')
     # status = models.CharField(max_length=50, choices=[('Создана', 'Создана'), ('Запущена', 'Запущена'), ('Завершена', 'Завершена')])
-    # message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    mail_active = models.BooleanField(verbose_name='Активность рассылки', default=True)
+
     message = models.ForeignKey(
         Message, on_delete=models.SET_NULL,
         related_name="message",
         null=True, blank=True,
         related_query_name='messages',
     )
-    recipients = models.ManyToManyField(Recipient)
+    recipients = models.ManyToManyField(Recipient, verbose_name='Клиент', related_name='client')
 
     views_count = models.PositiveIntegerField(
         verbose_name="Количество рассылок",
@@ -73,13 +82,6 @@ class Mailing(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    # recipients = models.ForeignKey(
-    #     Recipient, on_delete=models.SET_NULL,
-    #     related_name="recipient",
-    #     null=True, blank=True,
-    #     related_query_name='recipients',
-    # )
-
     def __str__(self):
         return f"Рассылка {self.id} {self.recipients} - {self.status}"
 
@@ -91,6 +93,11 @@ class Mailing(models.Model):
             "start_time",
             "status",
             "views_count",
+            "owner",
+        ]
+        permissions = [
+            ('disabling_mailing', 'Can disable mailing'),  # отключение рассылок
+            ('viewing_statistics', 'Can viewing statistics'),  # просмотр статистики по своим рассылкам
         ]
 
 

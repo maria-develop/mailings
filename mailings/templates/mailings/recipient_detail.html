@@ -1,0 +1,20 @@
+{% extends 'mailings/base.html' %}
+{% block content %}
+<div class="row text-center">
+        <div class="col-12">
+            <div class="card mb-4 box-shadow">
+                <div class="card-header">
+                    <h3 class="my-0 font-weight-normal">{{ recipient.full_name }}</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mt-3 mb-4 text-start m-3">
+                        <li>Адрес электронной почты: {{recipient.email}}</li>
+                    </ul>
+                    <a href="{% url 'mailings:recipient_update' object.pk %}" type="button" class="btn btn-lg btn-block btn-outline-dark">Редактировать</a>
+                    <a href="{% url 'mailings:recipient_delete' object.pk %}" type="button" class="btn btn-lg btn-block btn-outline-danger">Удалить</a>
+                    <a href="{% url 'mailings:recipient_list' %}" type="button" class="btn btn-lg btn-block btn-outline-success">Отмена</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

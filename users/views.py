@@ -1,14 +1,15 @@
 import secrets
 from django.urls import reverse_lazy, reverse
-from django.views.generic import CreateView
+from django.views.generic import CreateView, ListView, UpdateView
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.conf import settings
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
-from users.forms import UserRegisterForm, PasswordResetRequestForm, SetNewPasswordForm
+from users.forms import UserRegisterForm, PasswordResetRequestForm, SetNewPasswordForm, UserProfileForm, UserManagerProfileForm
 from users.models import User
 from config.settings import EMAIL_HOST_USER
 
@@ -34,6 +35,30 @@ class UserCreateView(CreateView):
         )
 
         return super().form_valid(form)
+
+
+class UsersListView(PermissionRequiredMixin, ListView):
+    """Просмотр списка пользователей"""
+    model = User
+    template_name = 'users/user_list.html'
+    context_object_name = 'object_list_users'
+    permission_required = "users.view_all_users"
+
+
+class ProfileView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = UserProfileForm
+    template_name = 'users/user_edit_form.html'
+    success_url = reverse_lazy('newsletter:homepage')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_form_class(self):
+        user = self.request.user
+        if user.has_perm('users.blocking_users'):
+            return UserManagerProfileForm
+        return UserProfileForm
 
 
 def email_verification(request, token):

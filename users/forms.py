@@ -1,8 +1,26 @@
 from mailings.forms import StyleFormMixin
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django import forms
 
 from users.models import User
+
+
+class UserProfileForm(StyleFormMixin, UserChangeForm):
+    """Редактирование профиля пользователя"""
+    class Meta:
+        model = User
+        fields = ('email', 'phone',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['password'].widget = forms.HiddenInput()
+
+
+class UserManagerProfileForm(StyleFormMixin, UserChangeForm):
+    class Meta:
+        model = User
+        fields = ('is_active',)
 
 
 class UserRegisterForm(StyleFormMixin, UserCreationForm):

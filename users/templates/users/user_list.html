@@ -1,0 +1,42 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <div class="col-md-3">
+        <h5>Список пользователей</h5>
+    </div>
+
+    <div class="col-md-9">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-md-1">ID</th>
+                    <th class="col-md-3" style="margin-left:20px">Телефон</th>
+                    <th class="col-md-3" style="margin-left:20px">Почта</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list_users %}
+                    <tr>
+                        <td>{{ object.id }}</td>
+                        <td>{{ object.phone }}</td>
+                        <td>{{ object.email }}</td>
+<!--                        <td>-->
+<!--                            <a href="{% url 'mailings:recipient_detail' object.pk %}">Детали</a> |-->
+<!--                            <a href="{% url 'mailings:recipient_update' object.pk %}">Редактировать</a> |-->
+<!--                            <a href="{% url 'mailings:recipient_delete' object.pk %}">Удалить</a> |-->
+<!--                            <form action="{% url 'mailings:recipient_detail' object.pk %}" method="POST" style="display:inline;">-->
+<!--                                {% csrf_token %}-->
+<!--                                <button type="submit">Сохранить</button>-->
+<!--                            </form>-->
+<!--                        </td>-->
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">Нет доступных пользователей.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href="{% url 'mailings:mailing_list' %}" class="col-md-2 btn btn-primary">Посмотреть все рассылки</a>
+{% endblock %}

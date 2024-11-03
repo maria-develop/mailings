@@ -6,13 +6,13 @@ from django.forms import inlineformset_factory
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 
 # from django.utils import timezone
 
 from .models import Mailing, Message, Recipient, MailingAttempt, MailingForm, MessageForm, Parent
 # from django.db import models
-from mailings.forms import MailingForm, ParentForm
-
+from mailings.forms import MailingForm, ParentForm, MailingManagerForm, MailingAttemptManagerForm, RecipientForm
 
 import logging
 
@@ -33,16 +33,21 @@ class MailingCreateView(CreateView, LoginRequiredMixin):
     form_class = MailingForm
     success_url = reverse_lazy('mailings:mailing_list')
 
-    # def form_valid(self, form):
-    #     messages.success(self.request, 'Рассылка создана!')
-    #     return super().form_valid(form)
-
     def form_valid(self, form):
         mailing = form.save()
         user = self.request.user
         mailing.owner = user
         mailing.save()
         return super().form_valid(form)
+
+    # def test_func(self):
+        # Проверка, активен ли пользователь
+        # return self.request.user.is_active  # Возвращает False для заблокированных пользователей
+
+    # def handle_no_permission(self):
+        # Обработка для заблокированных пользователей
+        # messages.error(self.request, "Ваш аккаунт заблокирован. Доступ к этой функции ограничен.")
+        # return redirect('/')  # Перенаправление на главную страницу или другую нужную страницу
 
 
 # Редактирование существующей рассылки
@@ -53,9 +58,13 @@ class MailingUpdateView(UpdateView):
     # fields = ['start_time', 'end_time', 'status', 'message', 'recipients']
     success_url = reverse_lazy('mailings:mailing_list')
 
-    # def form_valid(self, form):
-    #     messages.success(self.request, 'Рассылка обновлена!')
-    #     return super().form_valid(form)
+    def get_form_class(self):
+        user = self.request.user
+        if user == self.object.owner:
+            return MailingForm
+        elif user.has_perm('mailings:viewing_statistics'):
+            return MailingAttemptManagerForm
+        raise PermissionDenied
 
     def get_success_url(self):
         return reverse('mailings:mailing_detail', args=[self.kwargs.get('pk')])
@@ -91,6 +100,14 @@ class MailingDeleteView(DeleteView):
         messages.success(request, 'Рассылка удалена!')
         return super().delete(request, *args, **kwargs)
 
+    def get_form_class(self):
+        user = self.request.user
+        if user == self.object.owner:
+            return MailingForm
+        elif user.has_perm('mailings:viewing_statistics'):
+            return MailingAttemptManagerForm
+        raise PermissionDenied
+
 
 # Просмотр конкретной рассылки и ее деталей
 class MailingDetailView(DetailView):
@@ -98,6 +115,13 @@ class MailingDetailView(DetailView):
     # success_url = reverse_lazy('mailings:mailing_list')
     # template_name = 'mailings/mailing_detail.html'
     # context_object_name = 'mailing'
+
+    def get(self, request, *args, **kwargs):
+        # Проверяем, является ли пользователь владельцем или имеет право на просмотр статистики
+        mailing = self.get_object()
+        if request.user != mailing.owner and not request.user.has_perm('mailings.viewing_statistics'):
+            raise PermissionDenied("У вас нет прав для просмотра этой рассылки.")
+        return super().get(request, *args, **kwargs)
 
 
 # Логгирование ошибок почтового сервера
@@ -108,6 +132,10 @@ logger = logging.getLogger(__name__)
 class MailingSendView(View):
     def get(self, request, pk, *args, **kwargs):
         mailing = get_object_or_404(Mailing, pk=pk)
+        # Ограничение: проверка, что текущий пользователь является владельцем или имеет необходимые права
+        if request.user != mailing.owner and not request.user.has_perm('mailings.viewing_statistics'):
+            raise PermissionDenied("У вас нет прав для отправки этой рассылки.")
+
         return render(request, 'mailings/mailing_send.html', {'mailing': mailing})
 
     def post(self, request, pk, *args, **kwargs):
@@ -164,6 +192,78 @@ class MailingReportView(DetailView):
         context['failed_attempts'] = self.object.attempts.filter(status='Не успешно').count()
         context['total_attempts'] = self.object.attempts.count()
         return context
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        # Ограничение: проверка, что текущий пользователь является владельцем или имеет нужные права
+        if request.user != self.object.owner and not request.user.has_perm('mailings.viewing_statistics'):
+            raise PermissionDenied("У вас нет прав для просмотра отчета этой рассылки.")
+
+        return super().get(request, *args, **kwargs)
+
+
+class RecipientUpdateView(LoginRequiredMixin, UpdateView):
+    """Редактирование данных клиента"""
+    model = Recipient
+    form_class = RecipientForm
+    success_url = reverse_lazy('mailings:recipient_list')
+
+    def get_form_class(self):
+        user = self.request.user
+        if user == self.object.owner:
+            return RecipientForm
+        raise PermissionDenied
+
+
+class RecipientListView(LoginRequiredMixin, ListView):
+    """ Просмотр списка клиентов """
+    model = Recipient
+    form_class = RecipientForm
+    context_object_name = 'object_list_recipient'
+
+    def get_queryset(self):
+        user = self.request.user
+        # Разрешить менеджерам просматривать всех получателей
+        if user.is_staff or user.has_perm('users.view_all_recipients'):
+            return Recipient.objects.all()
+        else:
+            return Recipient.objects.filter(owner=user)
+
+
+class RecipientDetailView(LoginRequiredMixin, DetailView):
+    """Просмотр одного клиента"""
+    model = Recipient
+
+
+class RecipientCreateView(LoginRequiredMixin, CreateView):
+    """Создание клиента"""
+    model = Recipient
+    form_class = RecipientForm
+    success_url = reverse_lazy('mailings:recipient_list')
+
+    def form_valid(self, form):
+        recipient = form.save()
+        user = self.request.user
+        recipient.owner = user
+        recipient.save()
+        return super().form_valid(form)
+
+
+class RecipientDeleteView(LoginRequiredMixin, DeleteView):
+    """Удаление клиента"""
+    model = Recipient
+    success_url = reverse_lazy('mailings:recipient_list')
+
+    def get_context_data(self, **kwargs):
+        """
+        Права доступа владельца.
+        """
+        context_data = super().get_context_data(**kwargs)
+        user = self.request.user
+        if user == self.object.owner:
+            return context_data
+        raise PermissionDenied
 
 
 class HomePageView(TemplateView):

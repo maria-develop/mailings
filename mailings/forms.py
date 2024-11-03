@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm, BooleanField
 from django.utils import timezone
-from mailings.models import Mailing, Recipient, Parent
+from mailings.models import Mailing, Recipient, Parent, MailingAttempt
 from django import forms
 
 
@@ -15,6 +15,12 @@ class StyleFormMixin:
                 fild.widget.attrs['class'] = 'form-control'
 
 
+class RecipientForm(StyleFormMixin, forms.ModelForm):
+    class Meta:
+        model = Recipient
+        fields = '__all__'
+
+
 class MailingForm(StyleFormMixin, ModelForm):
     forbidden_words_name = ['казино', 'криптовалюта', 'крипта', 'биржа', 'дешево', 'бесплатно', 'обман', 'полиция',
                             'радар']
@@ -24,7 +30,7 @@ class MailingForm(StyleFormMixin, ModelForm):
     class Meta:
         model = Mailing
         exclude = ('owner',)
-        fields = '__all__'
+        # fields = '__all__'
 
     def clean_mailing_subject(self):
         name = self.cleaned_data.get('subject').lower()
@@ -39,6 +45,18 @@ class MailingForm(StyleFormMixin, ModelForm):
             if word in description:
                 raise forms.ValidationError("Текст сообщения содержит запрещенное слово: {}".format(word))
         return description
+
+
+class MailingManagerForm(ModelForm, StyleFormMixin):
+    class Meta:
+        model = Mailing
+        fields = ('mail_active',)
+
+
+class MailingAttemptManagerForm(ModelForm, StyleFormMixin):
+    class Meta:
+        model = MailingAttempt
+        fields = ('mailing',)
 
 
 class ParentForm(StyleFormMixin, ModelForm):

@@ -20,7 +20,7 @@ class User(AbstractUser):
         help_text='Загрузите свой аватар'
     )
     country = models.CharField(max_length=100, verbose_name="Страна", blank=True, null=True)
-
+    is_active = models.BooleanField(default=True, verbose_name='активен')
     token = models.CharField(max_length=100, verbose_name='Token', blank=True, null=True)
 
     USERNAME_FIELD = "email"
@@ -29,6 +29,10 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        permissions = [
+            ('blocking_users', 'Can block users'),  # блокировка пользователей
+            ("view_all_users", "Can view all users")  # просмотр всех пользователей
+        ]
 
     def __str__(self):
         return self.email
