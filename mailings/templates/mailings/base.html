@@ -166,14 +166,23 @@
 <main>
 <!--  <div class="b-example-divider"></div>-->
 
+<header data-bs-theme="dark">
+{% include 'mailings/includes/inc_menu.html' %}
+</header>
+<main>
+
   <div class="container px-4 py-5">
-    <h2 class="pb-2 border-bottom">Сервис рассылок</h2>
+<!--    <h2 class="pb-2 border-bottom">Сервис рассылок</h2>-->
 
     <div class="row row-cols-1 row-cols-md-2 align-items-md-center g-5 py-5">
       <div class="col-md-3 d-flex flex-column align-items-start gap-2">
-        <h2 class="fw-bold text-body-emphasis">Список рассылок</h2>
-        <p class="text-body-secondary">Здесь можно посмотреть все рассылки</p>
-        <a href="{% url 'mailings:mailing_list' %}" class="btn btn-primary btn-lg">Посмотреть</a>
+        <h2 class="fw-bold text-body-emphasis">Создать рассылку</h2>
+        <p class="text-body-secondary">Здесь можно создать рассылку</p>
+        {% if user.is_authenticated %}
+        <p>
+          <a href="{% url 'mailings:mailing_create' %}" class="btn btn-primary btn-lg">Создать</a>
+        </p>
+        {% endif %}
       </div>
 
       <div class="col-md-9">

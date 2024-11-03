@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Recipient, Message, Mailing, MailingAttempt
+from .models import Recipient, Message, Mailing, Parent
 
 
 @admin.register(Recipient)
@@ -27,3 +27,10 @@ class MailingAdmin(admin.ModelAdmin):
     def get_recipients(self, obj):
         return ", ".join([recipient.email for recipient in obj.recipients.all()])
     # get_recipients.short_description = 'Получатели'
+
+
+@admin.register(Parent)
+class ParentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'mailing', 'subject', 'body', 'status')
+    list_filter = ('mailing',)
+    search_fields = ('mailing', 'status',)

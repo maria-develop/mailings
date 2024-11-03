@@ -1,46 +1,84 @@
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.views import View
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy
-from django.urls import reverse
-from .models import Mailing, Message, Recipient, MailingAttempt, MailingForm, MessageForm
+from django.urls import reverse_lazy, reverse
+from django.forms import inlineformset_factory
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+# from django.utils import timezone
+
+from .models import Mailing, Message, Recipient, MailingAttempt, MailingForm, MessageForm, Parent
+# from django.db import models
+from mailings.forms import MailingForm, ParentForm
+
+
 import logging
 
 
 # Просмотр списка рассылок
 class MailingListView(ListView):
     model = Mailing
+    form_class = MailingForm
+    success_url = reverse_lazy('mailings:mailing_list')
     # mailings = Mailing.objects.all()
     # template_name = 'mailing_list.html'
     # context_object_name = 'mailings'
 
 
-class MailingCreateView(CreateView):
+class MailingCreateView(CreateView, LoginRequiredMixin):
     model = Mailing
-    fields = ['start_time', 'end_time', 'status', 'message', 'recipients']
-    # form_class = MailingForm
-    # template_name = 'mailings/mailing_create.html'
+    # fields = ['start_time', 'end_time', 'status', 'message', 'recipients']
+    form_class = MailingForm
     success_url = reverse_lazy('mailings:mailing_list')
 
+    # def form_valid(self, form):
+    #     messages.success(self.request, 'Рассылка создана!')
+    #     return super().form_valid(form)
+
     def form_valid(self, form):
-        messages.success(self.request, 'Рассылка создана!')
+        mailing = form.save()
+        user = self.request.user
+        mailing.owner = user
+        mailing.save()
         return super().form_valid(form)
 
 
 # Редактирование существующей рассылки
 class MailingUpdateView(UpdateView):
     model = Mailing
-    # form_class = MailingForm
+    form_class = MailingForm
     # template_name = 'mailing_form.html'
-    fields = ['start_time', 'end_time', 'status', 'message', 'recipients']
+    # fields = ['start_time', 'end_time', 'status', 'message', 'recipients']
     success_url = reverse_lazy('mailings:mailing_list')
 
+    # def form_valid(self, form):
+    #     messages.success(self.request, 'Рассылка обновлена!')
+    #     return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('mailings:mailing_detail', args=[self.kwargs.get('pk')])
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        MailingFormset = inlineformset_factory(Mailing, Parent, ParentForm, extra=1)
+        if self.request.method == 'POST':
+            context_data['formset'] = MailingFormset(self.request.POST, instance=self.object)
+        else:
+            context_data['formset'] = MailingFormset(instance=self.object)
+        return context_data
+
     def form_valid(self, form):
-        messages.success(self.request, 'Рассылка обновлена!')
-        return super().form_valid(form)
+        context_data = self.get_context_data()
+        formset = context_data['formset']
+        if form.is_valid() and formset.is_valid():
+            self.object = form.save()
+            formset.instance = self.object
+            formset.save()
+            return super().form_valid(form)
+        else:
+            return self.render_to_response(self.get_context_data(form=form, formset=formset))
 
 
 # Удаление рассылки

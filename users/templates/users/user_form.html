@@ -7,14 +7,14 @@
                 <use xlink:href="#collection" />
             </svg>
         </div>
-        <h4 class="fw-semibold mb-0 text-body-emphasis">{% if not form.instance.pk %}Создание и редактирование рассылки{% else %}Редактирование рассылки{% endif %}</h4>
-<!--        <p class="text-body-secondary">Создание и редактирование рассылки</p>-->
+        <h4 class="fw-semibold mb-0 text-body-emphasis">{% if not form.instance.pk %}Вход или регистрация{% else %}Редактирование рассылки{% endif %}</h4>
+        <p class="text-body-secondary">Вход или регистрация пользователя</p>
         <form method="POST">
-            {% if object %}
-            <p class="card-text">Редактирование рассылки</p>
-            {% else %}
-            <p class="card-text">Создание рассылки</p>
-            {% endif %}
+<!--            {% if object %}-->
+            <p class="card-text">Регистрация</p>
+<!--            {% else %}-->
+<!--            <p class="card-text">Вход</p>-->
+<!--            {% endif %}-->
             <div class="card-body">
                 {% csrf_token %}
                 {{ form.as_p }}
@@ -22,11 +22,11 @@
                 {% endfor %}
             </div>
             <button type="submit">
-                {% if object %}
-                Сохранить
-                {% else %}
-                Создать
-                {% endif %}
+<!--                {% if object %}-->
+<!--                Зарегистрироваться-->
+<!--                {% else %}-->
+                Зарегистрироваться
+<!--                {% endif %}-->
             </button>
         </form>
         <a href="{% url 'mailings:mailing_list' %}" class="btn btn-primary btn-lg">Назад к списку</a>

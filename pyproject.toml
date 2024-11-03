@@ -7,9 +7,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-django = "^5.1.2"
 psycopg2-binary = "^2.9.9"
 python-dotenv = "^1.0.1"
+pillow = "^11.0.0"
+django = "4.2.2"
 
 
 [build-system]

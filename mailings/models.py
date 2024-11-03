@@ -1,6 +1,8 @@
 from django.db import models
 from django import forms
 
+from users.models import User
+
 
 class Recipient(models.Model):
     email = models.EmailField(unique=True)
@@ -56,6 +58,21 @@ class Mailing(models.Model):
         related_query_name='messages',
     )
     recipients = models.ManyToManyField(Recipient)
+
+    views_count = models.PositiveIntegerField(
+        verbose_name="Количество рассылок",
+        help_text="Укажите количество рассылок",
+        default=0,
+    )
+
+    owner = models.ForeignKey(
+        User,
+        verbose_name='Владелец',
+        help_text='Укажите владельца рассылки',
+        blank=True, null=True,
+        on_delete=models.SET_NULL,
+    )
+
     # recipients = models.ForeignKey(
     #     Recipient, on_delete=models.SET_NULL,
     #     related_name="recipient",
@@ -73,6 +90,7 @@ class Mailing(models.Model):
             "id",
             "start_time",
             "status",
+            "views_count",
         ]
 
 
@@ -101,6 +119,45 @@ class MailingAttempt(models.Model):
             "status",
             "server_response",
         ]
+
+
+class Parent(models.Model):
+    mailing = models.ForeignKey(
+        Mailing,
+        related_name='parents',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Сообщение',
+    )
+
+    subject = models.CharField(
+        max_length=100,
+        verbose_name="Наименование сообщения",
+        help_text="Введите наименование сообщения",
+        null=True, blank=True,
+    )
+
+    body = models.TextField(
+        verbose_name="Текст сообщения",
+        help_text="Введите текст сообщения",
+        null=True, blank=True,
+    )
+
+    status = models.CharField(max_length=50)  # 'Успешно' или 'Не успешно'
+
+    class Meta:
+        verbose_name = "Родительский сообщение"
+        verbose_name_plural = "Родительские сообщения"
+        ordering = [
+            "mailing",
+            "subject",
+            "body",
+            "status",
+        ]
+
+    def __str__(self):
+        return f"Наименование рассылки: {self.mailing}"
 
 
 # Форма для создания и редактирования сообщений
