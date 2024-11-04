@@ -9,7 +9,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.conf import settings
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
-from users.forms import UserRegisterForm, PasswordResetRequestForm, SetNewPasswordForm, UserProfileForm, UserManagerProfileForm
+
+from users.forms import (UserRegisterForm, PasswordResetRequestForm, SetNewPasswordForm,
+                         UserProfileForm, UserManagerProfileForm)
 from users.models import User
 from config.settings import EMAIL_HOST_USER
 

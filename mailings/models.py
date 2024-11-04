@@ -97,6 +97,7 @@ class Mailing(models.Model):
         ]
         permissions = [
             ('disabling_mailing', 'Can disable mailing'),  # отключение рассылок
+            ('blocking_users', 'Can block users'),  # блокировка пользователей
             ('viewing_statistics', 'Can viewing statistics'),  # просмотр статистики по своим рассылкам
         ]
 

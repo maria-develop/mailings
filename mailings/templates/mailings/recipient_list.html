@@ -20,15 +20,17 @@
                         <td>{{ object.id }}</td>
                         <td>{{ object.full_name }}</td>
                         <td>{{ object.email }}</td>
-<!--                        <td>{{ object.comment }}</td>-->
                         <td>
                             <a href="{% url 'mailings:recipient_detail' object.pk %}">Детали</a> |
                             <a href="{% url 'mailings:recipient_update' object.pk %}">Редактировать</a> |
                             <a href="{% url 'mailings:recipient_delete' object.pk %}">Удалить</a> |
-                            <form action="{% url 'mailings:recipient_detail' object.pk %}" method="POST" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit">Сохранить</button>
-                            </form>
+                            {% if user.has_perm == "object.blocking_users" %}
+                                <form action="{% url 'mailings:block_user' object.pk %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-warning">Заблокировать</button>
+                                </form>
+                            {% endif %}
+
                         </td>
                     </tr>
                 {% empty %}

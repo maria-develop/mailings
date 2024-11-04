@@ -5,14 +5,16 @@ from django.urls import reverse_lazy, reverse
 from django.forms import inlineformset_factory
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
 
-# from django.utils import timezone
+from users.models import User
 
-from .models import Mailing, Message, Recipient, MailingAttempt, MailingForm, MessageForm, Parent
+from mailings.models import Mailing, Message, Recipient, MailingAttempt, MailingForm, MessageForm, Parent
 # from django.db import models
 from mailings.forms import MailingForm, ParentForm, MailingManagerForm, MailingAttemptManagerForm, RecipientForm
+from mailings.services import get_mailings_from_cache, get_recipient_from_cache
 
 import logging
 
@@ -22,9 +24,9 @@ class MailingListView(ListView):
     model = Mailing
     form_class = MailingForm
     success_url = reverse_lazy('mailings:mailing_list')
-    # mailings = Mailing.objects.all()
-    # template_name = 'mailing_list.html'
-    # context_object_name = 'mailings'
+
+    def get_queryset(self):
+        return get_mailings_from_cache()
 
 
 class MailingCreateView(CreateView, LoginRequiredMixin):
@@ -226,7 +228,7 @@ class RecipientListView(LoginRequiredMixin, ListView):
         user = self.request.user
         # Разрешить менеджерам просматривать всех получателей
         if user.is_staff or user.has_perm('users.view_all_recipients'):
-            return Recipient.objects.all()
+            return get_recipient_from_cache()
         else:
             return Recipient.objects.filter(owner=user)
 
@@ -264,6 +266,52 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
         if user == self.object.owner:
             return context_data
         raise PermissionDenied
+
+
+class DisableMailingView(PermissionRequiredMixin, View):
+    permission_required = 'mailings.disabling_mailing'
+
+    def post(self, request, *args, **kwargs):
+        mailing_id = kwargs.get('mailing_id')
+        mailing_to_disable = get_object_or_404(Mailing, pk=mailing_id)
+
+        # Логика отключения рассылки
+        mailing_to_disable.is_active = False
+        mailing_to_disable.save()
+        messages.success(request, f"Рассылка '{mailing_to_disable.message.subject}' была успешно отключена.")
+        return HttpResponseRedirect(reverse('mailings:mailing_list'))
+
+
+# class BlockUserView(PermissionRequiredMixin, View):
+#     permission_required = 'mailings.blocking_users'
+#
+#     def post(self, request, *args, **kwargs):
+#         user_id = kwargs.get('user_id')
+#         user_to_block = get_object_or_404(User, pk=user_id)
+
+        # Проверяем, что пользователь не является текущим пользователем
+        # if user_to_block == request.user:
+        #     messages.error(request, "Вы не можете заблокировать себя.")
+        #     return HttpResponseRedirect(reverse('users:user_list'))
+
+        # Логика блокировки пользователя
+        # user_to_block.is_active = False
+        # user_to_block.save()
+        # messages.success(request, f"Пользователь {user_to_block.email} был успешно заблокирован.")
+        # return HttpResponseRedirect(reverse('users:user_list'))
+
+
+class BlockUserView(PermissionRequiredMixin, View):
+    permission_required = 'mailings.blocking_users'
+
+    def post(self, request, *args, **kwargs):
+        # Логика блокировки пользователя
+        # Например:
+        user_id = kwargs.get('user_id')
+        user_to_block = User.objects.get(id=user_id)
+        user_to_block.is_active = False
+        user_to_block.save()
+        return redirect('users:user_list')
 
 
 class HomePageView(TemplateView):
