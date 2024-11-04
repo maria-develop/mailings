@@ -1,0 +1,11 @@
+<h1>Блокировка пользователя</h1>
+
+<ul>
+    {% for object in object_list_users %}
+        <li>{{ object.email }}</li>
+
+        {% if perms.user.blocking_users %}
+            <button>Исключить студента</button>
+        {% endif %}
+    {% endfor %}
+</ul>

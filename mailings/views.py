@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 
 from users.models import User
 
@@ -301,16 +301,29 @@ class DisableMailingView(PermissionRequiredMixin, View):
         # return HttpResponseRedirect(reverse('users:user_list'))
 
 
-class BlockUserView(PermissionRequiredMixin, View):
-    permission_required = 'mailings.blocking_users'
-
-    def post(self, request, *args, **kwargs):
+# class BlockUserView(PermissionRequiredMixin, View):
+#     permission_required = 'mailings.blocking_users'
+#
+#     def post(self, request, *args, **kwargs):
         # Логика блокировки пользователя
-        # Например:
-        user_id = kwargs.get('user_id')
-        user_to_block = User.objects.get(id=user_id)
+        # user_id = kwargs.get('user_id')
+        # user_to_block = User.objects.get(id=user_id)
+        # user_to_block.is_active = False
+        # user_to_block.save()
+        # return redirect('users:user_list')
+
+
+class BlockUserView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        user_to_block = get_object_or_404(User, id=pk)
+
+        if not request.user.has_perm('mailings.blocking_users'):
+            return HttpResponseForbidden("У вас нет прав для блокировки пользователя.")
+
+        # Логика блокировки пользователя
         user_to_block.is_active = False
         user_to_block.save()
+
         return redirect('users:user_list')
 
 

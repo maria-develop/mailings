@@ -8,6 +8,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.conf import settings
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+from django.http import HttpResponseForbidden
+from django.views import View
 
 
 from users.forms import (UserRegisterForm, PasswordResetRequestForm, SetNewPasswordForm,
@@ -70,7 +72,35 @@ def email_verification(request, token):
     return redirect(reverse('users:login'))
 
 
+class BlockUserView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        user_to_block = get_object_or_404(User, id=pk)
+
+        if not request.user.has_perm('mailings.blocking_users'):
+            return HttpResponseForbidden("У вас нет прав для блокировки пользователя.")
+
+        # Логика блокировки пользователя
+        user_to_block.is_active = False
+        user_to_block.save()
+
+        return redirect('users:block_user')
+
+
 User = get_user_model()
+
+
+class UnblockUserView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        user_to_unblock = get_object_or_404(User, id=pk)
+
+        if not request.user.has_perm('mailings.unblocking_users'):
+            return HttpResponseForbidden("У вас нет прав для разблокировки пользователя.")
+
+        # Логика разблокировки пользователя
+        user_to_unblock.is_active = True
+        user_to_unblock.save()
+
+        return redirect('users:list_view')
 
 
 def password_reset_request(request):

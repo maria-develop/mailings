@@ -15,12 +15,27 @@
                 </tr>
             </thead>
             <tbody>
-                {% if user.has_perm("users.view_all_users") %}
+                {% if not user.has_perm == "users.view_all_users" %}
                     {% for object in object_list_users %}
                         <tr>
                             <td>{{ object.id }}</td>
                             <td>{{ object.phone }}</td>
                             <td>{{ object.email }}</td>
+                            <td>
+                                {% if perms.users.blocking_users and not object.is_active %}
+                                    <!-- Кнопка для разблокировки -->
+                                    <form action="{% url 'users:unblock_user' object.id %}" method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit">Разблокировать</button>
+                                    </form>
+                                {% elif perms.users.blocking_users %}
+                                    <!-- Кнопка для блокировки -->
+                                    <form action="{% url 'users:block_user' object.id %}" method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit">Заблокировать</button>
+                                    </form>
+                                {% endif %}
+                            </td>
 <!--                            <td>-->
 <!--                                <a href="{% url 'mailings:recipient_detail' object.pk %}">Детали</a> |-->
 <!--                                <a href="{% url 'mailings:recipient_update' object.pk %}">Редактировать</a> |-->

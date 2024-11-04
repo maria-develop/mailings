@@ -19,7 +19,7 @@ urlpatterns = [
     path('report/<int:pk>/', MailingReportView.as_view(), name='mailing_report'),
     path('', HomePageView.as_view(), name='home'),
 
-    path('block_user/<int:user_id>/', BlockUserView.as_view(), name='block_user'),
+    # path('block_user/<int:pk>/', BlockUserView.as_view(), name='block_user'),
     path('disabling_mailing/<int:mailing_id>/', DisableMailingView.as_view(), name='disabling_mailing'),
 
     path('recipient/', RecipientListView.as_view(), name="recipient_list"),
