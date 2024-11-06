@@ -27,8 +27,8 @@ class MailingListView(ListView):
     form_class = MailingForm
     success_url = reverse_lazy('mailings:mailing_list')
 
-    # def get_queryset(self):
-    #     return get_mailings_from_cache()
+    def get_queryset(self):
+        return get_mailings_from_cache()
 
 
 class MailingCreateView(CreateView, LoginRequiredMixin):
