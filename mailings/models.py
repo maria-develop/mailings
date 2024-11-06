@@ -1,5 +1,6 @@
 from django.db import models
 from django import forms
+import uuid
 
 from users.models import User
 
@@ -54,6 +55,7 @@ class Message(models.Model):
 
 
 class Mailing(models.Model):
+    # mailing_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     start_time = models.DateTimeField(verbose_name='Начало отправки рассылки')
     end_time = models.DateTimeField(verbose_name='Последняя дата отправки рассылки', null=True, blank=True)
     status = models.CharField(max_length=50, default='Создана')
@@ -97,7 +99,8 @@ class Mailing(models.Model):
         ]
         permissions = [
             ('disabling_mailing', 'Can disable mailing'),  # отключение рассылок
-            ('blocking_users', 'Can block users'),  # блокировка пользователей
+            # ('enable_mailing', 'Can enable mailing'),  # включение рассылок
+            # ('blocking_users', 'Can block users'),  # блокировка пользователей
             ('viewing_statistics', 'Can viewing statistics'),  # просмотр статистики по своим рассылкам
         ]
 

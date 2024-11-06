@@ -8,6 +8,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, HttpResponseForbidden
+import uuid
+from django.db import migrations, models
 
 from users.models import User
 
@@ -25,8 +27,8 @@ class MailingListView(ListView):
     form_class = MailingForm
     success_url = reverse_lazy('mailings:mailing_list')
 
-    def get_queryset(self):
-        return get_mailings_from_cache()
+    # def get_queryset(self):
+    #     return get_mailings_from_cache()
 
 
 class MailingCreateView(CreateView, LoginRequiredMixin):
@@ -114,9 +116,9 @@ class MailingDeleteView(DeleteView):
 # Просмотр конкретной рассылки и ее деталей
 class MailingDetailView(DetailView):
     model = Mailing
+    context_object_name = 'mailing'
+    template_name = 'mailings/mailing_detail.html'
     # success_url = reverse_lazy('mailings:mailing_list')
-    # template_name = 'mailings/mailing_detail.html'
-    # context_object_name = 'mailing'
 
     def get(self, request, *args, **kwargs):
         # Проверяем, является ли пользователь владельцем или имеет право на просмотр статистики
@@ -272,28 +274,44 @@ class DisableMailingView(PermissionRequiredMixin, View):
     permission_required = 'mailings.disabling_mailing'
 
     def post(self, request, *args, **kwargs):
-        mailing_id = kwargs.get('mailing_id')
+        mailing_id = kwargs.get('start_time')
         mailing_to_disable = get_object_or_404(Mailing, pk=mailing_id)
 
         # Логика отключения рассылки
-        mailing_to_disable.is_active = False
+        mailing_to_disable.mail_active = False
         mailing_to_disable.save()
         messages.success(request, f"Рассылка '{mailing_to_disable.message.subject}' была успешно отключена.")
         return HttpResponseRedirect(reverse('mailings:mailing_list'))
 
 
-class BlockUserView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        user_to_block = get_object_or_404(User, id=pk)
+class EnableMailingView(PermissionRequiredMixin, View):
+    permission_required = 'mailings.disabling_mailing'
 
-        if not request.user.has_perm('mailings.blocking_users'):
-            return HttpResponseForbidden("У вас нет прав для блокировки пользователя.")
+    def post(self, request, *args, **kwargs):
+        mailing_id = kwargs.get('start_time')
+        mailing_to_enable = get_object_or_404(Mailing, pk=mailing_id)
 
-        # Логика блокировки пользователя
-        user_to_block.is_active = False
-        user_to_block.save()
+        # Логика включения рассылки
+        mailing_to_enable.mail_active = True
+        mailing_to_enable.save()
 
-        return redirect('users:user_list')
+        # Отправить сообщение об успехе
+        messages.success(request, f"Рассылка '{mailing_to_enable.message.subject}' была успешно включена.")
+        return redirect('mailings:mailing_list')  # или  redirect('mailings:mailing_detail', pk=mailing_id)
+
+
+# class BlockUserView(LoginRequiredMixin, View):
+#     def post(self, request, pk):
+#         user_to_block = get_object_or_404(User, id=pk)
+#
+#         if not request.user.has_perm('mailings.blocking_users'):
+#             return HttpResponseForbidden("У вас нет прав для блокировки пользователя.")
+#
+
+        # user_to_block.is_active = False
+        # user_to_block.save()
+        #
+        # return redirect('users:user_list')
 
 
 class HomePageView(TemplateView):

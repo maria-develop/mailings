@@ -2,6 +2,13 @@
 
 {% block content %}
     <h1 class="col-md-3">Список рассылок</h1>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
     <table class="col-md-9">
         <thead>
             <tr>
@@ -31,12 +38,18 @@
                         </form>
 
                         <!-- Проверка права на отключение рассылок -->
-                        {% if user.has_perm == "mailings.disabling_mailing" %}
-                            <form action="{% url 'mailings:disabling_mailing' mailing.pk %}" method="POST" style="display:inline;">
+                        {% if mailing.mail_active %}
+                            <form method="post" action="{% url 'mailings:disabling_mailing' mailing.pk %}">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-warning">Отключить</button>
+                                <button type="submit" class="btn btn-warning">Отключить рассылку</button>
+                            </form>
+                        {% else %}
+                            <form method="post" action="{% url 'mailings:enable_mailing' mailing.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">Включить рассылку</button>
                             </form>
                         {% endif %}
+
                     </td>
                 </tr>
             {% empty %}
