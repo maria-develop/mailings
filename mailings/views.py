@@ -282,37 +282,6 @@ class DisableMailingView(PermissionRequiredMixin, View):
         return HttpResponseRedirect(reverse('mailings:mailing_list'))
 
 
-# class BlockUserView(PermissionRequiredMixin, View):
-#     permission_required = 'mailings.blocking_users'
-#
-#     def post(self, request, *args, **kwargs):
-#         user_id = kwargs.get('user_id')
-#         user_to_block = get_object_or_404(User, pk=user_id)
-
-        # Проверяем, что пользователь не является текущим пользователем
-        # if user_to_block == request.user:
-        #     messages.error(request, "Вы не можете заблокировать себя.")
-        #     return HttpResponseRedirect(reverse('users:user_list'))
-
-        # Логика блокировки пользователя
-        # user_to_block.is_active = False
-        # user_to_block.save()
-        # messages.success(request, f"Пользователь {user_to_block.email} был успешно заблокирован.")
-        # return HttpResponseRedirect(reverse('users:user_list'))
-
-
-# class BlockUserView(PermissionRequiredMixin, View):
-#     permission_required = 'mailings.blocking_users'
-#
-#     def post(self, request, *args, **kwargs):
-        # Логика блокировки пользователя
-        # user_id = kwargs.get('user_id')
-        # user_to_block = User.objects.get(id=user_id)
-        # user_to_block.is_active = False
-        # user_to_block.save()
-        # return redirect('users:user_list')
-
-
 class BlockUserView(LoginRequiredMixin, View):
     def post(self, request, pk):
         user_to_block = get_object_or_404(User, id=pk)
