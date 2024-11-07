@@ -21,41 +21,43 @@
         </thead>
         <tbody>
             {% for mailing in object_list %}
-                <tr>
-                    <td>{{ mailing.id }}</td>
-                    <td>{{ mailing.message.subject }}</td>
-                    <td>{{ mailing.status }}</td>
-                    <td>{{ mailing.created_at }}</td>
-                    <td>
-                        <a href="{% url 'mailings:mailing_detail' mailing.pk %}">Детали</a> |
-                        <a href="{% url 'mailings:mailing_update' mailing.pk %}">Редактировать</a> |
-                        <a href="{% url 'mailings:mailing_delete' mailing.pk %}">Удалить</a> |
+                {% if mailing.owner == user or perms.view_mailing %}
+                    <tr>
+                        <td>{{ mailing.id }}</td>
+                        <td>{{ mailing.message.subject }}</td>
+                        <td>{{ mailing.status }}</td>
+                        <td>{{ mailing.created_at }}</td>
+                        <td>
+                            <a href="{% url 'mailings:mailing_detail' mailing.pk %}">Детали</a> |
+                            <a href="{% url 'mailings:mailing_update' mailing.pk %}">Редактировать</a> |
+                            <a href="{% url 'mailings:mailing_delete' mailing.pk %}">Удалить</a> |
 
-                        <!-- Проверка права на отправку рассылки -->
-                        <form action="{% url 'mailings:mailing_send' mailing.pk %}" method="POST" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Отправить</button>
-                        </form>
-
-                        <!-- Проверка права на отключение рассылок -->
-                        {% if mailing.mail_active %}
-                            <form method="post" action="{% url 'mailings:disabling_mailing' mailing.pk %}">
+                            <!-- Проверка права на отправку рассылки -->
+                            <form action="{% url 'mailings:mailing_send' mailing.pk %}" method="POST" style="display:inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-warning">Отключить рассылку</button>
+                                <button type="submit">Отправить</button>
                             </form>
-                        {% else %}
-                            <form method="post" action="{% url 'mailings:enable_mailing' mailing.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success">Включить рассылку</button>
-                            </form>
-                        {% endif %}
 
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="5">Нет доступных рассылок.</td>
-                </tr>
+                            <!-- Проверка права на отключение рассылок -->
+                            {% if mailing.mail_active %}
+                                <form method="post" action="{% url 'mailings:disabling_mailing' mailing.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-warning">Отключить рассылку</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{% url 'mailings:enable_mailing' mailing.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Включить рассылку</button>
+                                </form>
+                            {% endif %}
+
+                        </td>
+                    </tr>
+                {% endif %}
+                {% empty %}
+                    <tr>
+                        <td colspan="5">Нет доступных рассылок.</td>
+                    </tr>
             {% endfor %}
         </tbody>
     </table>

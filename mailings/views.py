@@ -16,7 +16,7 @@ from users.models import User
 from mailings.models import Mailing, Message, Recipient, MailingAttempt, MailingForm, MessageForm, Parent
 # from django.db import models
 from mailings.forms import MailingForm, ParentForm, MailingManagerForm, MailingAttemptManagerForm, RecipientForm
-from mailings.services import get_mailings_from_cache, get_recipient_from_cache
+from mailings.services import get_mailings_from_cache, get_recipient_from_cache, send_mailing_messages
 
 import logging
 
@@ -51,7 +51,7 @@ class MailingCreateView(CreateView, LoginRequiredMixin):
     # def handle_no_permission(self):
         # Обработка для заблокированных пользователей
         # messages.error(self.request, "Ваш аккаунт заблокирован. Доступ к этой функции ограничен.")
-        # return redirect('/')  # Перенаправление на главную страницу или другую нужную страницу
+        # return redirect('/')  # Перенаправление на главную страницу
 
 
 # Редактирование существующей рассылки
@@ -300,18 +300,38 @@ class EnableMailingView(PermissionRequiredMixin, View):
         return redirect('mailings:mailing_list')  # или  redirect('mailings:mailing_detail', pk=mailing_id)
 
 
-# class BlockUserView(LoginRequiredMixin, View):
-#     def post(self, request, pk):
-#         user_to_block = get_object_or_404(User, id=pk)
-#
-#         if not request.user.has_perm('mailings.blocking_users'):
-#             return HttpResponseForbidden("У вас нет прав для блокировки пользователя.")
-#
+class MailingAttemptListView(ListView):
+    model = MailingAttempt
+    success_url = reverse_lazy('mailings:mailing_list')
 
-        # user_to_block.is_active = False
-        # user_to_block.save()
-        #
-        # return redirect('users:user_list')
+    def get_queryset(self):
+        user = self.request.user
+
+        # Проверка на суперпользователя или наличие специального разрешения
+        if user.is_staff or user.has_perm('users.view_all_recipients'):
+            # Возвращаем все попытки рассылок для пользователей с правами
+            return MailingAttempt.objects.all()
+        else:
+            # Получаем рассылки, принадлежащие текущему пользователю
+            user_mailings = Mailing.objects.filter(owner=user)
+            # Возвращаем только попытки рассылок, относящиеся к этим рассылкам
+            return MailingAttempt.objects.filter(mailing__in=user_mailings)
+    # form = MailingForm
+    # if form.is_valid():
+    #     selected_recipients = form.cleaned_data['recipients']  # Получаем список объектов
+    #     for recipient in selected_recipients:
+    #         print(recipient.email)  # Получаем email из каждого объекта Recipient
+
+    def post(self, request, *args, **kwargs):
+        mailing_id = kwargs.get('pk')
+        mailing = get_object_or_404(Mailing, pk=mailing_id)
+
+        # Инициация отправки рассылки
+        send_mailing_messages(mailing)
+
+        # Отображаем сообщение об успешной отправке
+        messages.success(request, f"Рассылка '{mailing.message.subject}' была успешно отправлена.")
+        return redirect('mailings:mailing_list')
 
 
 class HomePageView(TemplateView):

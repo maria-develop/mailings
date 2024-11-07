@@ -85,13 +85,13 @@ class Mailing(models.Model):
     )
 
     def __str__(self):
-        return f"Рассылка {self.id} {self.recipients} - {self.status}"
+        return f"Рассылка {self.start_time} {self.recipients} - {self.status}"
 
     class Meta:
         verbose_name = "рассылка"
         verbose_name_plural = "рассылки"
         ordering = [
-            "id",
+            # "id",
             "start_time",
             "status",
             "views_count",
@@ -99,8 +99,6 @@ class Mailing(models.Model):
         ]
         permissions = [
             ('disabling_mailing', 'Can disable mailing'),  # отключение рассылок
-            # ('enable_mailing', 'Can enable mailing'),  # включение рассылок
-            # ('blocking_users', 'Can block users'),  # блокировка пользователей
             ('viewing_statistics', 'Can viewing statistics'),  # просмотр статистики по своим рассылкам
         ]
 
@@ -109,7 +107,6 @@ class MailingAttempt(models.Model):
     attempt_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50)  # 'Успешно' или 'Не успешно'
     # status = models.CharField(max_length=50, choices=[('Успешно', 'Успешно'), ('Не успешно', 'Не успешно')])
-    # server_response = models.TextField()
     server_response = models.TextField(null=True, blank=True)  # Ответ сервера, если ошибка
     # mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE)
     mailing = models.ForeignKey(
@@ -118,9 +115,26 @@ class MailingAttempt(models.Model):
         null=True, blank=True,
         related_query_name='attempts',
     )
+    from_email = models.EmailField(
+        verbose_name="Адрес отправителя",
+        default="default-email@example.com",
+        help_text="Укажите адрес электронной почты отправителя."
+    )
+    recipients = forms.ModelMultipleChoiceField(
+        queryset=Recipient.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label="Выберите получателей"
+    )
+    # recipients = models.ForeignKey(
+    #     Recipient, on_delete=models.SET_NULL,
+    #     related_name="recipients",
+    #     null=True, blank=True,
+    #     related_query_name='recipients',
+    # )
+    # recipients = models.ManyToManyField(Recipient, verbose_name='Клиент', related_name='Клиент')
 
     def __str__(self):
-        return f"Попытка {self.id} - {self.status}"
+        return f"Попытка {self.status}"
 
     class Meta:
         verbose_name = "попытка"

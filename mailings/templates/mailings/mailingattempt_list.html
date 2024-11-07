@@ -1,0 +1,44 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <h4 class="fw-semibold mb-0 text-body-emphasis col-md-2">Список попыток рассылок</h4>
+    <table class="col-md-10">
+        <thead>
+            <tr>
+                <th class="col-md-2">Дата попытки</th>
+                <th class="col-md-1">Статус</th>
+                <th class="col-md-4">Получатель рассылки</th>
+                <th class="col-md-5">Ответ сервера</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for attempt in object_list %}
+                {% if mailing.owner == user or perms.view_mailing %}
+                    <tr>
+                        <td class="col-md-2">{{ attempt.attempt_time }}</td>
+                        <td class="col-md-1">{{ attempt.status }}</td>
+                        <td class="col-md-4">
+                            {% for recipient in attempt.recipients.queryset %}
+                                <li>{{ recipient.email }}</li>
+                            {% endfor %}
+                        </td>
+                        <td class="col-md-5">{{ attempt.server_response }}</td>
+
+                    </tr>
+
+                {% endif %}
+
+                {% empty %}
+                    <tr>
+                        <td colspan="3">Нет записей о попытках рассылок.</td>
+                    </tr>
+            {% endfor %}
+            <form action="{% url 'mailings:mailing_list' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit">Отправить рассылку</button>
+            </form>
+            </form>
+        </tbody>
+    </table>
+{% endblock %}

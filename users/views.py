@@ -83,7 +83,7 @@ class BlockUserView(LoginRequiredMixin, View):
         user_to_block.is_active = False
         user_to_block.save()
 
-        return redirect('users:block_user')
+        return redirect('users:list_view')
 
 
 User = get_user_model()

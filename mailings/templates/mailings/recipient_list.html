@@ -16,6 +16,7 @@
             </thead>
             <tbody>
                 {% for object in object_list_recipient %}
+                {% if object.owner == user or perms.view_recipient %}
                     <tr>
                         <td>{{ object.id }}</td>
                         <td>{{ object.full_name }}</td>
@@ -37,6 +38,7 @@
                     <tr>
                         <td colspan="4">Нет доступных клиентов.</td>
                     </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
