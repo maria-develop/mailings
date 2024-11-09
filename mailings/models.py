@@ -35,12 +35,20 @@ class Message(models.Model):
     subject = models.CharField(max_length=255)
     body = models.TextField()
 
-    recipient = models.ForeignKey(
-        Recipient, on_delete=models.SET_NULL,
-        related_name="message",
-        null=True, blank=True,
-        related_query_name='messages',
+    owner = models.ForeignKey(
+        User,
+        verbose_name='Владелец',
+        help_text='Укажите владельца рассылки',
+        blank=True, null=True,
+        on_delete=models.SET_NULL,
     )
+
+    # recipient = models.ForeignKey(
+    #     Recipient, on_delete=models.SET_NULL,
+    #     related_name="message",
+    #     null=True, blank=True,
+    #     related_query_name='messages',
+    # )
 
     def __str__(self):
         return self.subject
@@ -50,16 +58,23 @@ class Message(models.Model):
         verbose_name_plural = "письма"
         ordering = [
             "subject",
-            "recipient",
+            "owner",
         ]
+    permissions = [
+        ('manager_view_message', 'Can manager view message'),  # просмотр сообщений
+    ]
 
 
 class Mailing(models.Model):
-    # mailing_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    STATUS_CHOICES = [
+        ('created', 'Создана'),
+        ('started', 'Запущена'),
+        ('completed', 'Завершена'),
+    ]
     start_time = models.DateTimeField(verbose_name='Начало отправки рассылки')
     end_time = models.DateTimeField(verbose_name='Последняя дата отправки рассылки', null=True, blank=True)
-    status = models.CharField(max_length=50, default='Создана')
-    # status = models.CharField(max_length=50, choices=[('Создана', 'Создана'), ('Запущена', 'Запущена'), ('Завершена', 'Завершена')])
+    # status = models.CharField(max_length=50, default='Создана')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Создана')
     mail_active = models.BooleanField(verbose_name='Активность рассылки', default=True)
 
     message = models.ForeignKey(
@@ -104,9 +119,14 @@ class Mailing(models.Model):
 
 
 class MailingAttempt(models.Model):
+    STATUS_CHOICES = [
+        ('created', 'Создана'),
+        ('started', 'Запущена'),
+        ('completed', 'Завершена'),
+    ]
     attempt_time = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50)  # 'Успешно' или 'Не успешно'
-    # status = models.CharField(max_length=50, choices=[('Успешно', 'Успешно'), ('Не успешно', 'Не успешно')])
+    # status = models.CharField(max_length=50)  # 'Успешно' или 'Не успешно'
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='created')
     server_response = models.TextField(null=True, blank=True)  # Ответ сервера, если ошибка
     # mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE)
     mailing = models.ForeignKey(
@@ -120,18 +140,11 @@ class MailingAttempt(models.Model):
         default="default-email@example.com",
         help_text="Укажите адрес электронной почты отправителя."
     )
-    recipients = forms.ModelMultipleChoiceField(
-        queryset=Recipient.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        label="Выберите получателей"
-    )
-    # recipients = models.ForeignKey(
-    #     Recipient, on_delete=models.SET_NULL,
-    #     related_name="recipients",
-    #     null=True, blank=True,
-    #     related_query_name='recipients',
+    # recipients = forms.ModelMultipleChoiceField(
+    #     queryset=Recipient.objects.all(),
+    #     widget=forms.CheckboxSelectMultiple,
+    #     label="Выберите получателей"
     # )
-    # recipients = models.ManyToManyField(Recipient, verbose_name='Клиент', related_name='Клиент')
 
     def __str__(self):
         return f"Попытка {self.status}"
@@ -185,53 +198,51 @@ class Parent(models.Model):
         return f"Наименование рассылки: {self.mailing}"
 
 
-# Форма для создания и редактирования сообщений
-class MessageForm(forms.ModelForm):
-    subject = models.CharField(max_length=255)
-    body = models.TextField()
-    recipients = models.ForeignKey(
-        Recipient, on_delete=models.SET_NULL,
-        related_name="recipient",
-        null=True, blank=True,
-        related_query_name='recipients',
-    )
+# class MessageForm(forms.ModelForm):
+#     """Форма для создания и редактирования сообщений"""
+#     subject = models.CharField(max_length=255)
+#     body = models.TextField()
+#     recipients = models.ForeignKey(
+#         Recipient, on_delete=models.SET_NULL,
+#         related_name="recipient",
+#         null=True, blank=True,
+#         related_query_name='recipients',
+#     )
+#
+#     class Meta:
+#         verbose_name = "сообщение"
+#         verbose_name_plural = "сообщения"
+#         ordering = [
+#             "subject",
+#             "body",
+#             "recipients",
+#         ]
+#
+#
+# class MailingForm(forms.ModelForm):
+#     """Форма для создания и редактирования рассылок"""
+#     start_time = models.DateTimeField()
+#     end_time = models.DateTimeField()
+#     status = models.CharField(max_length=50,
+#                               choices=[('Создана', 'Создана'), ('Запущена', 'Запущена'), ('Завершена', 'Завершена')])
+#     message = models.ForeignKey(
+#         Message, on_delete=models.SET_NULL,
+#         related_name="message",
+#         null=True, blank=True,
+#         related_query_name='messages',
+#     )
+#     recipients = models.ForeignKey(
+#         Recipient, on_delete=models.SET_NULL,
+#         related_name="recipient",
+#         null=True, blank=True,
+#         related_query_name='recipients',
+#     )
 
-    class Meta:
-        verbose_name = "сообщение"
-        verbose_name_plural = "сообщения"
-        ordering = [
-            "subject",
-            "body",
-            "recipients",
-        ]
-        # fields = ['subject', 'body']
-
-
-# Форма для создания и редактирования рассылок
-class MailingForm(forms.ModelForm):
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    status = models.CharField(max_length=50,
-                              choices=[('Создана', 'Создана'), ('Запущена', 'Запущена'), ('Завершена', 'Завершена')])
-    # message = models.ForeignKey(Message, on_delete=models.CASCADE)
-    message = models.ForeignKey(
-        Message, on_delete=models.SET_NULL,
-        related_name="message",
-        null=True, blank=True,
-        related_query_name='messages',
-    )
-    recipients = models.ForeignKey(
-        Recipient, on_delete=models.SET_NULL,
-        related_name="recipient",
-        null=True, blank=True,
-        related_query_name='recipients',
-    )
-
-    class Meta:
-        verbose_name = "рассылка"
-        verbose_name_plural = "рассылки"
-        ordering = [
-            "recipients",
-            "status",
-            "start_time",
-        ]
+    # class Meta:
+    #     verbose_name = "рассылка"
+    #     verbose_name_plural = "рассылки"
+    #     ordering = [
+    #         "recipients",
+    #         "status",
+    #         "start_time",
+    #     ]

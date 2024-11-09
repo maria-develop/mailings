@@ -13,9 +13,9 @@ from django.db import migrations, models
 
 from users.models import User
 
-from mailings.models import Mailing, Message, Recipient, MailingAttempt, MailingForm, MessageForm, Parent
+from mailings.models import Mailing, Message, Recipient, MailingAttempt, Parent
 # from django.db import models
-from mailings.forms import MailingForm, ParentForm, MailingManagerForm, MailingAttemptManagerForm, RecipientForm
+from mailings.forms import MailingForm, ParentForm, MailingAttemptManagerForm, RecipientForm, MessageForm
 from mailings.services import get_mailings_from_cache, get_recipient_from_cache, send_mailing_messages
 
 import logging
@@ -226,13 +226,21 @@ class RecipientListView(LoginRequiredMixin, ListView):
     form_class = RecipientForm
     context_object_name = 'object_list_recipient'
 
-    def get_queryset(self):
-        user = self.request.user
+    # def get_queryset(self):
+    #     user = self.request.user
         # Разрешить менеджерам просматривать всех получателей
-        if user.is_staff or user.has_perm('users.view_all_recipients'):
-            return get_recipient_from_cache()
-        else:
-            return Recipient.objects.filter(owner=user)
+        # if user.is_staff or user.has_perm('users.view_all_recipients'):
+        #     return get_recipient_from_cache()
+        # else:
+        #     return Recipient.objects.filter(owner=user)
+
+    def get_form_class(self):
+        user = self.request.user
+        if user == self.object.owner:
+            return RecipientForm
+        elif user.has_perm('mailings:view_all_recipients'):
+            return RecipientForm
+        raise PermissionDenied
 
 
 class RecipientDetailView(LoginRequiredMixin, DetailView):
@@ -247,11 +255,16 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('mailings:recipient_list')
 
     def form_valid(self, form):
-        recipient = form.save()
-        user = self.request.user
-        recipient.owner = user
-        recipient.save()
+        # Устанавливаем текущего пользователя в качестве владельца
+        form.instance.owner = self.request.user
         return super().form_valid(form)
+
+    # def form_valid(self, form):
+    #     recipient = form.save()
+    #     user = self.request.user
+    #     recipient.owner = user
+    #     recipient.save()
+    #     return super().form_valid(form)
 
 
 class RecipientDeleteView(LoginRequiredMixin, DeleteView):
@@ -350,3 +363,89 @@ class HomePageView(TemplateView):
         context['unique_recipients'] = Recipient.objects.distinct().count()
 
         return context
+
+
+class MessageListView(LoginRequiredMixin, ListView):
+    model = Message
+    template_name = 'mailings/message_list.html'
+    context_object_name = 'messages'
+
+    def get_form_class(self):
+        user = self.request.user
+        if user == self.object.owner:
+            return MessageForm
+        elif user.has_perm('mailings:view_message'):
+            return MessageForm
+        raise PermissionDenied
+
+
+class MessageDetailView(PermissionRequiredMixin, DetailView):
+    model = Message
+    template_name = 'mailings/message_detail.html'
+    context_object_name = 'message'
+    permission_required = 'mailings.view_message'
+
+    def get_form_class(self):
+        user = self.request.user
+        if user == self.object.owner:
+            return MessageForm
+        elif user.has_perm('mailings:view_message'):
+            return MessageForm
+        raise PermissionDenied
+
+
+class MessageCreateView(PermissionRequiredMixin, CreateView):
+    model = Message
+    template_name = 'mailings/message_form.html'
+    fields = ['subject', 'body']
+    permission_required = 'mailings.add_message'
+    success_url = reverse_lazy('mailings:message_list')
+
+    # def form_valid(self, form):
+    #     message = form.save()
+    #     user = self.request.user
+    #     message.owner = user
+    #     message.save()
+    #     return super().form_valid(form)
+
+    def form_valid(self, form):
+        # Устанавливаем текущего пользователя в качестве владельца
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class MessageUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Message
+    template_name = 'mailings/message_form.html'
+    fields = ['subject', 'body']
+    permission_required = 'mailings.view_message'
+    success_url = reverse_lazy('mailings:message_list')
+
+    def has_permission(self):
+        # Проверяем, что пользователь либо имеет право на изменение, либо является владельцем
+        return super().has_permission() or self.get_object().owner == self.request.user
+
+    def get_form_class(self):
+        user = self.request.user
+        if self.get_object().owner == user or user.has_perm('mailings.change_message'):
+            return MessageForm
+        raise PermissionDenied
+
+    # def get_form_class(self):
+    #     user = self.request.user
+    #     if user == self.object.owner:
+    #         return MessageForm
+    #     elif user.has_perm('mailings:view_message'):
+    #         return PermissionDenied
+    #     raise PermissionDenied
+
+
+class MessageDeleteView(PermissionRequiredMixin, DeleteView):
+    model = Message
+    template_name = 'mailings/message_confirm_delete.html'
+    permission_required = 'mailings.view_message'
+    success_url = reverse_lazy('mailings:message_list')
+
+    def has_permission(self):
+        # Проверяем, что пользователь либо имеет право на удаление, либо является владельцем
+        return super().has_permission() or self.get_object().owner == self.request.user

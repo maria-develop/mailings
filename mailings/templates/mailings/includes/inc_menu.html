@@ -8,12 +8,18 @@
         <div class="col-sm-4 offset-md-1 py-4">
           <h4>Навигация</h4>
           <ul class="list-unstyled">
-            <li><a href="{% url 'mailings:mailing_list' %}" class="text-white">Главное меню</a></li>
+            <li><a href="{% url 'mailings:home' %}" class="text-white">Главное меню</a></li>
             {% if user.is_authenticated %}
-            <li><a href="{% url 'users:logout' %}" class="text-white">Выход</a></li>
+            {% if perms.view_mailing %}
+              <li><a href="{% url 'users:list_view' %}" class="text-white">Список пользователей</a></li>
+            {% endif %}
+              <li><a href="{% url 'mailings:mailing_list' %}" class="text-white">Список рассылок</a></li>
+              <li><a href="{% url 'mailings:message_list' %}" class="text-white">Список писем</a></li>
+              <li><a href="{% url 'mailings:recipient_list' %}" class="text-white">Список клиентов</a></li>
+              <li><a href="{% url 'users:logout' %}" class="text-white">Выход</a></li>
             {% else %}
-            <li><a href="{% url 'users:register' %}" class="text-white">Регистрация</a></li>
-            <li><a href="{% url 'users:login' %}" class="text-white">Вход</a></li>
+              <li><a href="{% url 'users:register' %}" class="text-white">Регистрация</a></li>
+              <li><a href="{% url 'users:login' %}" class="text-white">Вход</a></li>
             {% endif %}
           </ul>
         </div>

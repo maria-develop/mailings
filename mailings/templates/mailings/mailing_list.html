@@ -1,7 +1,7 @@
 {% extends 'mailings/base.html' %}
 
 {% block content %}
-    <h1 class="col-md-3">Список рассылок</h1>
+    <h4 class="col-md-2">Список рассылок:</h4>
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }}">
@@ -28,21 +28,25 @@
                         <td>{{ mailing.status }}</td>
                         <td>{{ mailing.created_at }}</td>
                         <td>
-                            <a href="{% url 'mailings:mailing_detail' mailing.pk %}">Детали</a> |
-                            <a href="{% url 'mailings:mailing_update' mailing.pk %}">Редактировать</a> |
-                            <a href="{% url 'mailings:mailing_delete' mailing.pk %}">Удалить</a> |
+                            {% if mailing.owner == user %}
+                                <a href="{% url 'mailings:mailing_detail' mailing.pk %}">Детали</a> |
+                                <a href="{% url 'mailings:mailing_update' mailing.pk %}">Редактировать</a> |
+                                <a href="{% url 'mailings:mailing_delete' mailing.pk %}">Удалить</a> |
+                            {% endif %}
 
                             <!-- Проверка права на отправку рассылки -->
+                            {% if mailing.owner == user %}
                             <form action="{% url 'mailings:mailing_send' mailing.pk %}" method="POST" style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit">Отправить</button>
                             </form>
+                            {% endif %}
 
                             <!-- Проверка права на отключение рассылок -->
                             {% if mailing.mail_active %}
                                 <form method="post" action="{% url 'mailings:disabling_mailing' mailing.pk %}">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-warning">Отключить рассылку</button>
+                                    <button type="submit" class="btn btn-primary">Отключить рассылку</button>
                                 </form>
                             {% else %}
                                 <form method="post" action="{% url 'mailings:enable_mailing' mailing.pk %}">
@@ -63,5 +67,5 @@
     </table>
 
     <!-- Кнопка создания новой рассылки доступна всем пользователям -->
-    <a href="{% url 'mailings:mailing_create' %}">Создать новую рассылку</a>
+<!--    <a href="{% url 'mailings:mailing_create' %}">Создать новую рассылку</a>-->
 {% endblock %}

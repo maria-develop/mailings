@@ -1,0 +1,19 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <h1>Список писем</h1>
+    <a href="{% url 'mailings:message_create' %}">Создать новое письмо</a>
+    <ul>
+        {% for message in messages %}
+            <li>
+                <a href="{% url 'mailings:message_detail' message.pk %}">{{ message.subject }}</a>
+                {% if perms.mailings.change_message and message.owner == user %}
+                    <a href="{% url 'mailings:message_update' message.pk %}">Редактировать</a>
+                    <a href="{% url 'mailings:message_delete' message.pk %}">Удалить</a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>Нет доступных писем.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

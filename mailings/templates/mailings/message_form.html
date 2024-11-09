@@ -1,0 +1,23 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <h1>
+        {% if form.instance.pk %}
+            Редактировать письмо
+        {% else %}
+            Создать письмо
+        {% endif %}
+    </h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">
+            {% if form.instance.pk %}
+                Сохранить
+            {% else %}
+                Создать
+            {% endif %}
+        </button>
+    </form>
+    <a href="{% url 'mailings:message_list' %}">Назад к списку</a>
+{% endblock %}

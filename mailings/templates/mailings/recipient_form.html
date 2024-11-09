@@ -9,7 +9,7 @@
             <div class="card-body">
                 {{form.as_p}}
                 {% csrf_token %}
-                <button type="submit" class="btn btn-lg btn-block btn-outline-success">Создать</button>
+                <button type="submit" class="btn btn-lg btn-block btn-outline-success">Создать/Редактировать</button>
                 <a href="{% url 'mailings:recipient_list' %}" type="button" class="btn btn-lg btn-block btn-outline-dark">Отмена</a>
             </div>
         </div>

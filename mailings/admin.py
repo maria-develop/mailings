@@ -11,7 +11,7 @@ class RecipientAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'subject',  'body', 'recipient')
+    list_display = ('id', 'subject',  'body', 'owner')
     list_filter = ('subject',)
     search_fields = ('subject', 'recipient',)
 
