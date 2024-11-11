@@ -7,8 +7,9 @@
     <p><strong>Статус:</strong> {{ mailing.status }}</p>
     <p><strong>Дата создания:</strong> {{ mailing.start_time }}</p>
 
-    <h4>Получатели</h4>
+
     <ul>
+        <h4>Получатели:</h4>
         {% for recipient in mailing.recipients.all %}
             <li>{{ recipient.email }}</li>
         {% endfor %}

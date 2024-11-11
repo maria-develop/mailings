@@ -22,7 +22,7 @@ import logging
 
 
 # Просмотр списка рассылок
-class MailingListView(ListView):
+class MailingListView(LoginRequiredMixin, ListView):
     model = Mailing
     form_class = MailingForm
     success_url = reverse_lazy('mailings:mailing_list')
@@ -55,7 +55,7 @@ class MailingCreateView(CreateView, LoginRequiredMixin):
 
 
 # Редактирование существующей рассылки
-class MailingUpdateView(UpdateView):
+class MailingUpdateView(LoginRequiredMixin, UpdateView):
     model = Mailing
     form_class = MailingForm
     # template_name = 'mailing_form.html'
@@ -95,7 +95,7 @@ class MailingUpdateView(UpdateView):
 
 
 # Удаление рассылки
-class MailingDeleteView(DeleteView):
+class MailingDeleteView(LoginRequiredMixin, DeleteView):
     model = Mailing
     # template_name = 'mailing_confirm_delete.html'
     success_url = reverse_lazy('mailings:mailing_list')
@@ -114,7 +114,7 @@ class MailingDeleteView(DeleteView):
 
 
 # Просмотр конкретной рассылки и ее деталей
-class MailingDetailView(DetailView):
+class MailingDetailView(LoginRequiredMixin, DetailView):
     model = Mailing
     context_object_name = 'mailing'
     template_name = 'mailings/mailing_detail.html'
@@ -133,7 +133,7 @@ logger = logging.getLogger(__name__)
 
 
 # Отправка рассылки вручную
-class MailingSendView(View):
+class MailingSendView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
         mailing = get_object_or_404(Mailing, pk=pk)
         # Ограничение: проверка, что текущий пользователь является владельцем или имеет необходимые права
@@ -185,7 +185,7 @@ class MailingSendView(View):
         return redirect('mailings:mailing_report', pk=pk)
 
 
-class MailingReportView(DetailView):
+class MailingReportView(LoginRequiredMixin, DetailView):
     model = Mailing
     template_name = 'mailings/mailing_report.html'
     context_object_name = 'mailing'
@@ -283,7 +283,7 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
         raise PermissionDenied
 
 
-class DisableMailingView(PermissionRequiredMixin, View):
+class DisableMailingView(LoginRequiredMixin, PermissionRequiredMixin, View):
     permission_required = 'mailings.disabling_mailing'
 
     def post(self, request, *args, **kwargs):
@@ -297,7 +297,7 @@ class DisableMailingView(PermissionRequiredMixin, View):
         return HttpResponseRedirect(reverse('mailings:mailing_list'))
 
 
-class EnableMailingView(PermissionRequiredMixin, View):
+class EnableMailingView(LoginRequiredMixin, PermissionRequiredMixin, View):
     permission_required = 'mailings.disabling_mailing'
 
     def post(self, request, *args, **kwargs):
@@ -313,7 +313,7 @@ class EnableMailingView(PermissionRequiredMixin, View):
         return redirect('mailings:mailing_list')  # или  redirect('mailings:mailing_detail', pk=mailing_id)
 
 
-class MailingAttemptListView(ListView):
+class MailingAttemptListView(LoginRequiredMixin, ListView):
     model = MailingAttempt
     success_url = reverse_lazy('mailings:mailing_list')
 
@@ -379,7 +379,7 @@ class MessageListView(LoginRequiredMixin, ListView):
         raise PermissionDenied
 
 
-class MessageDetailView(PermissionRequiredMixin, DetailView):
+class MessageDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Message
     template_name = 'mailings/message_detail.html'
     context_object_name = 'message'
@@ -394,7 +394,7 @@ class MessageDetailView(PermissionRequiredMixin, DetailView):
         raise PermissionDenied
 
 
-class MessageCreateView(PermissionRequiredMixin, CreateView):
+class MessageCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Message
     template_name = 'mailings/message_form.html'
     fields = ['subject', 'body']
@@ -414,7 +414,7 @@ class MessageCreateView(PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class MessageUpdateView(PermissionRequiredMixin, UpdateView):
+class MessageUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Message
     template_name = 'mailings/message_form.html'
     fields = ['subject', 'body']
@@ -440,7 +440,7 @@ class MessageUpdateView(PermissionRequiredMixin, UpdateView):
     #     raise PermissionDenied
 
 
-class MessageDeleteView(PermissionRequiredMixin, DeleteView):
+class MessageDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Message
     template_name = 'mailings/message_confirm_delete.html'
     permission_required = 'mailings.view_message'

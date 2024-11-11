@@ -67,9 +67,9 @@ class Message(models.Model):
 
 class Mailing(models.Model):
     STATUS_CHOICES = [
-        ('created', 'Создана'),
-        ('started', 'Запущена'),
-        ('completed', 'Завершена'),
+        ('Создана', 'Создана'),
+        ('Запущена', 'Запущена'),
+        ('Завершена', 'Завершена'),
     ]
     start_time = models.DateTimeField(verbose_name='Начало отправки рассылки')
     end_time = models.DateTimeField(verbose_name='Последняя дата отправки рассылки', null=True, blank=True)
