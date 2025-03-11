@@ -1,0 +1,43 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <div class="col-md-2">
+        <h4>Список клиентов:</h4>
+    </div>
+
+    <div class="col-md-10">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-md-1">ID</th>
+                    <th class="col-md-2" style="margin-left:20px">Имя</th>
+                    <th class="col-md-3" style="margin-left:20px">Почта</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list_recipient %}
+                {% if perms.view_recipient %}
+                    <tr>
+                        <td>{{ object.id }}</td>
+                        <td>{{ object.full_name }}</td>
+                        <td>{{ object.email }}</td>
+                        <td>
+                            <a href="{% url 'mailings:recipient_detail' object.pk %}">Детали</a>
+                            {% if object.owner == user %}
+                            <a href="{% url 'mailings:recipient_update' object.pk %}">| Редактировать</a>
+                            <a href="{% url 'mailings:recipient_delete' object.pk %}">| Удалить</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% empty %}
+                    <tr>
+                        <td colspan="4">Нет доступных клиентов.</td>
+                    </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+<!--    <a href="{% url 'mailings:mailing_list' %}" class="col-md-2 btn btn-primary">Посмотреть все рассылки</a>-->
+{% endblock %}

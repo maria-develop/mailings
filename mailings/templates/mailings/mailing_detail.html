@@ -1,0 +1,38 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <h2>Детали рассылки</h2>
+    <p><strong>Заголовок:</strong> {{ mailing.message.subject }}</p>
+    <p><strong>Сообщение:</strong> {{ mailing.message.body }}</p>
+    <p><strong>Статус:</strong> {{ mailing.status }}</p>
+    <p><strong>Дата создания:</strong> {{ mailing.start_time }}</p>
+
+
+    <ul>
+        <h4>Получатели:</h4>
+        {% for recipient in mailing.recipients.all %}
+            <li>{{ recipient.email }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'mailings:mailing_update' mailing.pk %}">Редактировать</a>
+    <a href="{% url 'mailings:mailing_list' %}">Назад к списку</a>
+    <form action="{% url 'mailings:mailing_send' mailing.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Отправить рассылку</button>
+    </form>
+
+    <p>Состояние рассылки (is_active): {{ mailing.mail_active }}</p>
+
+    {% if mailing.mail_active %}
+        <form method="post" action="{% url 'mailings:disabling_mailing' mailing.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Отключить рассылку</button>
+        </form>
+    {% else %}
+        <form method="post" action="{% url 'mailings:enable_mailing' mailing.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Включить рассылку</button>
+        </form>
+    {% endif %}
+{% endblock %}

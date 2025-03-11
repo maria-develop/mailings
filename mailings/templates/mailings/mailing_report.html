@@ -1,0 +1,37 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <h1>Отчет по рассылке: {{ mailing.message.subject }}</h1>
+    <p><strong>Статус рассылки:</strong> {{ mailing.status }}</p>
+
+    <ul>
+        <h3>Статистика отправок:</h3>
+        <li>Успешных отправок: {{ successful_attempts }}</li>
+        <li>Неуспешных отправок: {{ failed_attempts }}</li>
+        <li>Всего попыток: {{ total_attempts }}</li>
+    </ul>
+
+    <p><strong>Дата создания:</strong> {{ mailing.start_time }}</p>
+
+    <h3>Подробности попыток:</h3>
+    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Дата и время</th>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Статус</th>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd;">Ответ сервера</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attempt in mailing.attempts.all %}
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{{ attempt.attempt_time }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{{ attempt.status }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{{ attempt.server_response }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'mailings:mailing_list' %}">Назад к списку рассылок</a>
+{% endblock %}

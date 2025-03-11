@@ -1,0 +1,18 @@
+{% extends 'mailings/base.html' %}
+{% block content %}
+<form class="row" method="post" enctype="multipart/form-data">
+    <div class="col-12">
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">Добавьте клиента</h4>
+            </div>
+            <div class="card-body">
+                {{form.as_p}}
+                {% csrf_token %}
+                <button type="submit" class="btn btn-lg btn-block btn-outline-success">Создать/Редактировать</button>
+                <a href="{% url 'mailings:recipient_list' %}" type="button" class="btn btn-lg btn-block btn-outline-dark">Отмена</a>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

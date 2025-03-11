@@ -1,0 +1,17 @@
+{% extends 'mailings/base.html' %}
+
+{% block content %}
+    <h1>{{ message.subject }}</h1>
+    <p>{{ message.body }}</p>
+    <p><strong>Владелец:</strong> {{ message.owner }}</p>
+
+    {% if perms.mailings.change_message and message.owner == user %}
+        <a href="{% url 'mailings:message_update' message.pk %}">Редактировать</a>
+    {% endif %}
+
+    {% if perms.mailings.delete_message and message.owner == user %}
+        <a href="{% url 'mailings:message_delete' message.pk %}">Удалить</a>
+    {% endif %}
+
+    <a href="{% url 'mailings:message_list' %}">Назад к списку</a>
+{% endblock %}
